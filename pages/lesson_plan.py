@@ -12,9 +12,10 @@ render_sidebar()
 with open('utils/config.json', 'r') as config_file:
     config = json.load(config_file)
 
-# Extract OpenAI model and temperature from config
+# Extract parameters from config
 OPENAI_MODEL = config.get('openai_model_name', 'gpt-4o')
 TEMPERATURE = config.get('temperature', 0.7)
+LANGUAGE = config.get('language', 'English')
 
 # --- 🛠️ Initialize Lesson Plan and User Inputs in Session State ---
 if "lesson_plan" not in st.session_state:
@@ -69,7 +70,7 @@ with st.sidebar:
         client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
         lesson_prompt = f"""
-        You are an AI that generates structured **lesson plans** for learning Polish.
+        You are an AI that generates structured **lesson plans** for learning {LANGUAGE}.
         - The user is at **{user_level}** level.
         - The lesson plan duration is **{learning_period}**.
         - The learning goals are: "{user_goals}".

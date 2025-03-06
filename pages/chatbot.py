@@ -25,6 +25,20 @@ def get_ai_response_history(messages):
 
 # --- Initialize session state for messages if not present ---
 if "messages" not in st.session_state:
+    st.session_state.system_prompt = {"role": "system", "content": """
+        You are a friendly personal {LANGUAGE} language tutor, helping to improve speaking skills. You:
+        - Speak only in {LANGUAGE}, but provide translations if requested.
+        - Plan lesson topics covering everyday situations, professional settings, and cultural aspects of {LANGUAGE} speaking countries.
+        - Provide a list of key words and phrases for each topic, along with examples of usage.
+        - Check user's answers to questions, correct mistakes, and explain grammar and pronunciation nuances. When correcting mistakes, you strike out incorrect words and write the correct ones in bold next to them, so the user can see errors. In the case of grammar mistakes, you remind the user of the relevant rule.
+        - Keep the conversation going, ask guiding questions, engage the user in dialogues, and help them develop fluency.
+        - Suggest more advanced vocabulary based on responses, ask follow-up questions, and encourage the user to use new words in context.
+        - Maintain a vocabulary list of new words and occasionally remind the user to use them in conversation.
+        - Recommend additional materials: movies, books, podcasts, and articles in {LANGUAGE}.
+        - Encourage the user to think in {LANGUAGE} and not be afraid of mistakes, creating a friendly and motivating learning environment.
+        """}
+
+if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # --- 📖 Vocabulary Panel ---
@@ -35,9 +49,10 @@ st.sidebar.header("💬 Your Teaching Assistant")
 with open('utils/config.json', 'r') as config_file:
     config = json.load(config_file)
 
-# Extract OpenAI model and temperature from config
+# Extract parameters from config
 OPENAI_MODEL = config.get('openai_model_name', 'gpt-4o')
 TEMPERATURE = config.get('temperature', 0.7)
+LANGUAGE = config.get('language', 'English')
 
 # Load vocabulary list
 vocab_list = storage.load_vocabulary()
@@ -64,6 +79,56 @@ if corrected_vocab_list != vocab_list:
 vocab_list = corrected_vocab_list
 
 # Display vocabulary in sidebar
+
+# --- Add New Word Section ---
+new_word = st.sidebar.text_input("➕ Add a new word", key="new_vocab_word")
+
+if st.sidebar.button("Add Word"):
+    if new_word.strip() and all(w["word"] != new_word.strip() for w in vocab_list):
+        # Generate translation and example using OpenAI
+        client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+        prompt = f"""
+        You are a {LANGUAGE} language expert. For the word "{new_word}", provide:
+        1. A concise translation to English.
+        2. One example sentence in {LANGUAGE} using the word.
+
+        Format the response as:
+        Translation: <your translation>
+        Example: <your example>
+        """
+
+        with st.spinner(f"Fetching translation and example for '{new_word}'..."):
+            response = client.chat.completions.create(
+                model=OPENAI_MODEL,
+                messages=[{"role": "system", "content": "Provide translation to English and an example in {LANGUAGE}."},
+                          {"role": "user", "content": prompt}],
+                temperature=TEMPERATURE
+            )
+
+        # Parse the response
+        content = response.choices[0].message.content
+        translation = ""
+        example = ""
+
+        for line in content.splitlines():
+            if line.startswith("Translation:"):
+                translation = line.replace("Translation:", "").strip()
+            elif line.startswith("Example:"):
+                example = line.replace("Example:", "").strip()
+
+        if translation and example:
+            # Add word with translation and example
+            vocab_list.append({
+                "word": new_word.strip(),
+                "translation": translation,
+                "example": example
+            })
+            storage.save_vocabulary(vocab_list)
+            st.success(f"Added '{new_word}' with translation and example.")
+            st.experimental_rerun()
+        else:
+            st.error("Failed to fetch translation and example. Try again.")
 if vocab_list:
     for word_entry in vocab_list:
         st.sidebar.markdown(f"- **{word_entry['word']}**")
@@ -79,20 +144,19 @@ if st.sidebar.button("📝 Quiz!"):
         quiz_word_list = [w["word"] for w in quiz_words]
 
         quiz_prompt = f"""
-        You are a Polish language tutor. Create an engaging exercise using these words: {', '.join(quiz_word_list)}.
+        You are a {LANGUAGE} language tutor. Create an engaging exercise using these words: {', '.join(quiz_word_list)}.
         Format it as a quiz that the user can answer.
         """
 
         with st.spinner("Generating quiz..."):
-            quiz_response = get_ai_response_history([{"role": "user", "content": quiz_prompt}])
+            quiz_response = get_ai_response_history(st.session_state.messages + [{"role": "user", "content": quiz_prompt}])
 
-        if "messages" not in st.session_state:
-            st.session_state.messages = []
-        
         st.session_state.messages.append({"role": "assistant", "content": quiz_response})
         
-        with st.chat_message("assistant"):
-            st.write(quiz_response)
+# Display chat history
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.write(message["content"])
 
 # Chat interface
 user_input = st.chat_input("Type your message...")
@@ -109,4 +173,3 @@ if user_input:
         st.write(bot_reply)
 
     st.session_state.messages.append({"role": "assistant", "content": bot_reply})
-    

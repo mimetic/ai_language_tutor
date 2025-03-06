@@ -12,9 +12,10 @@ render_sidebar()
 with open('utils/config.json', 'r') as config_file:
     config = json.load(config_file)
 
-# Extract OpenAI model and temperature from config
+# Extract parameters from config
 OPENAI_MODEL = config.get('openai_model_name', 'gpt-4o')
 TEMPERATURE = config.get('temperature', 0.7)
+LANGUAGE = config.get('language', 'English')
 
 # --- Load Vocabulary ---
 vocab_list = storage.load_vocabulary()
@@ -85,9 +86,9 @@ if st.sidebar.button("Add Word"):
         client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
         prompt = f"""
-        You are a Polish language expert. For the word "{new_word}", provide:
+        You are a {LANGUAGE} language expert. For the word "{new_word}", provide:
         1. A concise translation to English.
-        2. One example sentence in Polish using the word.
+        2. One example sentence in {LANGUAGE} using the word.
 
         Format the response as:
         Translation: <your translation>
@@ -98,7 +99,7 @@ if st.sidebar.button("Add Word"):
             try:
                 response = client.chat.completions.create(
                     model=OPENAI_MODEL,
-                    messages=[{"role": "system", "content": "You provide translation and examples in Polish."},
+                    messages=[{"role": "system", "content": "You provide translation and examples in {LANGUAGE}."},
                               {"role": "user", "content": prompt}],
                     temperature=TEMPERATURE
                 )
