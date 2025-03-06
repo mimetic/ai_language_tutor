@@ -26,14 +26,14 @@ for entry in vocab_list:
     if isinstance(entry, str):
         corrected_vocab_list.append({
             "word": entry,
-            "translation": "Brak.",
-            "example": "Brak."
+            "translation": "None.",
+            "example": "None."
         })
     elif isinstance(entry, dict):
         corrected_vocab_list.append({
             "word": entry.get("word", "Unknown"),
-            "translation": entry.get("translation", "Brak."),
-            "example": entry.get("example", "Brak.")
+            "translation": entry.get("translation", "None."),
+            "example": entry.get("example", "None.")
         })
 
 if corrected_vocab_list != vocab_list:

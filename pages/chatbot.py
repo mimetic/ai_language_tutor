@@ -63,14 +63,14 @@ for entry in vocab_list:
     if isinstance(entry, str):
         corrected_vocab_list.append({
             "word": entry,
-            "translation": "Brak.",
-            "example": "Brak."
+            "translation": "None.",
+            "example": "None."
         })
     elif isinstance(entry, dict):
         corrected_vocab_list.append({
             "word": entry.get("word", "Unknown"),
-            "translation": entry.get("translation", "Brak."),
-            "example": entry.get("example", "Brak.")
+            "translation": entry.get("translation", "None."),
+            "example": entry.get("example", "None.")
         })
 
 if corrected_vocab_list != vocab_list:
@@ -101,8 +101,7 @@ if st.sidebar.button("Add Word"):
         with st.spinner(f"Fetching translation and example for '{new_word}'..."):
             response = client.chat.completions.create(
                 model=OPENAI_MODEL,
-                messages=[{"role": "system", "content": "Provide translation to English and an example in {LANGUAGE}."},
-                          {"role": "user", "content": prompt}],
+                messages=[{"role": "user", "content": prompt}],
                 temperature=TEMPERATURE
             )
 
