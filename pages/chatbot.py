@@ -13,6 +13,15 @@ st.write("Talk to your AI teaching assistant on any topic, ask for explanations 
 st.write("Save any new words to your vocabulary list in the side panel.")
 st.write("Press 'Quiz!' to get exercises for practicing random words from your vocabulary list.")
 
+# --- Load Configuration from config.json ---
+with open('utils/config.json', 'r') as config_file:
+    config = json.load(config_file)
+
+# Extract parameters from config
+OPENAI_MODEL = config.get('openai_model_name', 'gpt-4o')
+TEMPERATURE = config.get('temperature', 0.7)
+LANGUAGE = config.get('language', 'English')
+
 # AI Response Function from the whole history
 def get_ai_response_history(messages):
     client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -25,7 +34,7 @@ def get_ai_response_history(messages):
 
 # --- Initialize session state for messages if not present ---
 if "messages" not in st.session_state:
-    st.session_state.system_prompt = {"role": "system", "content": """
+    st.session_state.system_prompt = {"role": "system", "content": f"""
         You are a friendly personal {LANGUAGE} language tutor, helping to improve speaking skills. You:
         - Speak only in {LANGUAGE}, but provide translations if requested.
         - Plan lesson topics covering everyday situations, professional settings, and cultural aspects of {LANGUAGE} speaking countries.
@@ -44,15 +53,6 @@ if "messages" not in st.session_state:
 # --- 📖 Vocabulary Panel ---
 render_sidebar()
 st.sidebar.header("💬 Your Teaching Assistant")
-
-# --- Load Configuration from config.json ---
-with open('utils/config.json', 'r') as config_file:
-    config = json.load(config_file)
-
-# Extract parameters from config
-OPENAI_MODEL = config.get('openai_model_name', 'gpt-4o')
-TEMPERATURE = config.get('temperature', 0.7)
-LANGUAGE = config.get('language', 'English')
 
 # Load vocabulary list
 vocab_list = storage.load_vocabulary()
