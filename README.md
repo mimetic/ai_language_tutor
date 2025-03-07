@@ -3,6 +3,8 @@
 ## 📌 Project Overview
 AI Language Tutor is a personal AI-powered language learning assistant built using **Streamlit** and **OpenAI's GPT models**. The app provides structured language learning with lesson plans, vocabulary tracking, quizzes, and AI-driven conversational practice.
 
+Check out full story in my [Medium article](https://medium.com/@kate.ruksha/building-an-ai-powered-personal-language-tutor-with-chatgpt-59d2e4cd7f56).
+
 ## 🚀 Features
 - **AI Chatbot Tutor** – Engage in real-time AI-powered conversations.
 - **Lesson Plans** – Auto-generated structured learning plans.
