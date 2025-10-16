@@ -1,9 +1,16 @@
+# Version: 04.15
 import streamlit as st
 from utils import storage
 from sidebar import render_sidebar
-import openai
+from utils.llm_client import chat_completion, get_llm_client
+from components.model_selector import render_model_selector
 import random
 import json
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 st.set_page_config(page_title="Let's talk", page_icon="💬", layout="wide")
 
@@ -13,24 +20,24 @@ st.write("Talk to your AI teaching assistant on any topic, ask for explanations 
 st.write("Save any new words to your vocabulary list in the side panel.")
 st.write("Press 'Quiz!' to get exercises for practicing random words from your vocabulary list.")
 
-# --- Load Configuration from config.json ---
+# --- Load Configuration from config.json and environment ---
 with open('utils/config.json', 'r') as config_file:
     config = json.load(config_file)
 
-# Extract parameters from config
-OPENAI_MODEL = config.get('openai_model_name', 'gpt-4o')
-TEMPERATURE = config.get('temperature', 0.7)
+# Extract parameters from config and environment
 LANGUAGE = config.get('language', 'English')
+
+# Get LLM client info for display
+try:
+    llm_client = get_llm_client("chat")
+    provider_info = llm_client.get_provider_info()
+except Exception as e:
+    st.error(f"Failed to initialize LLM client: {e}")
+    st.stop()
 
 # AI Response Function from the whole history
 def get_ai_response_history(messages):
-    client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-    response = client.chat.completions.create(
-        model=OPENAI_MODEL,
-        messages=messages,
-        temperature=TEMPERATURE
-    )
-    return response.choices[0].message.content
+    return chat_completion(messages, model_type="chat")
 
 # --- Initialize session state for messages if not present ---
 if "messages" not in st.session_state:
@@ -53,6 +60,9 @@ if "messages" not in st.session_state:
 # --- 📖 Vocabulary Panel ---
 render_sidebar()
 st.sidebar.header("💬 Your Teaching Assistant")
+
+# Model Selection Interface
+render_model_selector()
 
 # Load vocabulary list
 vocab_list = storage.load_vocabulary()
@@ -85,9 +95,6 @@ new_word = st.sidebar.text_input("➕ Add a new word", key="new_vocab_word")
 
 if st.sidebar.button("Add Word"):
     if new_word.strip() and all(w["word"] != new_word.strip() for w in vocab_list):
-        # Generate translation and example using OpenAI
-        client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-
         prompt = f"""
         You are a {LANGUAGE} language expert. For the word "{new_word}", provide:
         1. A concise translation to English.
@@ -99,14 +106,10 @@ if st.sidebar.button("Add Word"):
         """
 
         with st.spinner(f"Fetching translation and example for '{new_word}'..."):
-            response = client.chat.completions.create(
-                model=OPENAI_MODEL,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=TEMPERATURE
-            )
+            response = chat_completion([{"role": "user", "content": prompt}], model_type="chat")
 
         # Parse the response
-        content = response.choices[0].message.content
+        content = response
         translation = ""
         example = ""
 
@@ -125,7 +128,7 @@ if st.sidebar.button("Add Word"):
             })
             storage.save_vocabulary(vocab_list)
             st.success(f"Added '{new_word}' with translation and example.")
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.error("Failed to fetch translation and example. Try again.")
 if vocab_list:

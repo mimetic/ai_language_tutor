@@ -11,11 +11,13 @@ Check out full story in my [Medium article](https://medium.com/@kate.ruksha/buil
 - **Vocabulary Management** – Store, review, and practice new words.
 - **Quizzes** – AI-generated quizzes based on stored vocabulary.
 - **Lesson History** – Review past conversations and learning progress.
+- **Multi-Model Support** – Choose different LLM models for chat and lesson planning.
+- **Model Discovery** – Automatically discover available models from LM Studio.
 
 ## 🏗️ Tech Stack
 - **Frontend:** Streamlit (Fast UI prototyping)
-- **Backend:** OpenAI API (LLM-powered tutor)
-- **Data Storage:** Local JSON files (User history, vocabulary, lesson plans)
+- **Backend:** Multi-LLM support (OpenAI API, LM Studio, Ollama)
+- **Data Storage:** Local JSON files (User history, vocabulary, lesson plans, model configurations)
 - **Customization:** CSS/HTML for UI enhancements
 
 ## 📂 Folder Structure
@@ -33,8 +35,12 @@ AI_LANGUAGE_TUTOR/
 │   │── lesson_plan.py     # Lesson plan page
 │   │── vocab.py           # Vocabulary management page
 │
+│── components/            # Reusable UI components
+│   │── model_selector.py  # Model selection interface
+│
 │── utils/                 # Utility functions and configurations
-│   │── config.json        # Stores configuration settings
+│   │── config.json        # Stores configuration settings (language, models)
+│   │── llm_client.py      # Multi-provider LLM client
 │   │── storage.py         # Handles saving/loading data
 │
 │── .gitignore             # Ignore unnecessary files
@@ -45,10 +51,46 @@ AI_LANGUAGE_TUTOR/
 
 ## 🛠️ Setup & Installation
 ### **Configuring the AI Model & Learning Language**
-- The AI model and parameters are defined in `utils/config.json`.
-- To specify which GPT model to use, update the `openai_model_name` field.
-- The learning language can be set in `config.json` under `learning_language`.
-- Ensure you provide a valid OpenAI API key in your environment variables or secure settings.
+
+#### **Model Selection**
+The app supports multiple LLM providers:
+- **OpenAI**: GPT-4o, GPT-4o Mini, GPT-4 Turbo, GPT-3.5 Turbo
+- **LM Studio**: Auto-discovery of local models
+- **Ollama**: Auto-discovery of local models
+
+#### **Configuration Options**
+1. **Environment Variables** (`.env` file):
+   ```bash
+   # Provider selection
+   LLM_PROVIDER=lmstudio  # or openai, ollama
+   
+   # Separate models for different functions
+   LLM_MODEL_CHAT=qwen2.5-7b-instruct
+   LLM_MODEL_LESSON=qwen2.5-7b-instruct
+   
+   # LM Studio/Ollama configuration
+   LMSTUDIO_BASE_URL=http://localhost:1234/v1
+   OLLAMA_BASE_URL=http://localhost:11434
+   
+   # OpenAI configuration
+   OPENAI_API_KEY=your-api-key-here
+   ```
+
+2. **UI Model Selection**: Use the model selector in the sidebar to:
+   - Choose different models for chat vs lesson planning
+   - Auto-discover available models from LM Studio
+   - Switch models without restarting the app
+
+3. **Language Configuration**: Set in `utils/config.json`:
+   ```json
+   {
+     "language": "German",
+     "llm_models": {
+       "chat": "model-name",
+       "lesson": "model-name"
+     }
+   }
+   ```
 
 
 ### **Prerequisites**
@@ -70,18 +112,29 @@ Ensure you have **Python 3.8+** installed.
    ```sh
    pip install -r requirements.txt
    ```
-4. **Run the App:**
+4. **Setup Environment:**
+   ```sh
+   # Copy the example environment file
+   cp .env.example .env
+   
+   # Edit .env with your configuration
+   # Set your API keys and preferred models
+   ```
+5. **Run the App:**
    ```sh
    streamlit run app.py
    ```
 
 ## 📖 Usage Guide
 1. **Start the app** and select an activity from the main page.
-2. **Use the AI Chat** for practice and receive instant corrections.
-3. **Generate lesson plans** tailored to your language goals.
-4. **Add new words** to your vocabulary list for later review.
-5. **Take quizzes** to reinforce learning.
-6. **Review past conversations** in the history tab.
+2. **Configure models** using the sidebar model selector:
+   - Choose different models for chat and lesson planning
+   - Refresh to discover new models from LM Studio
+3. **Use the AI Chat** for practice and receive instant corrections.
+4. **Generate lesson plans** tailored to your language goals.
+5. **Add new words** to your vocabulary list for later review.
+6. **Take quizzes** to reinforce learning.
+7. **Review past conversations** in the history tab.
 
 ## 🎯 Future Improvements
 - ✅ Text-to-speech integration for listening practice.

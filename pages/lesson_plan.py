@@ -1,20 +1,29 @@
+# Version: 04.15
 import streamlit as st
 from utils import storage
-from sidebar import render_sidebar 
+from sidebar import render_sidebar
+from utils.llm_client import chat_completion, get_llm_client
+from components.model_selector import render_model_selector
 import json
 import re
-import openai
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Set environment variables in Streamlit secrets
+if "OPENAI_API_KEY" not in st.secrets and os.getenv("OPENAI_API_KEY"):
+    st.secrets["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 
 st.set_page_config(page_title="Lesson Plan", page_icon="📚", layout="wide")
 render_sidebar()
 
-# --- Load Configuration from config.json ---
+# --- Load Configuration from config.json and environment ---
 with open('utils/config.json', 'r') as config_file:
     config = json.load(config_file)
 
 # Extract parameters from config
-OPENAI_MODEL = config.get('openai_model_name', 'gpt-4o')
-TEMPERATURE = config.get('temperature', 0.7)
 LANGUAGE = config.get('language', 'English')
 
 # --- 🛠️ Initialize Lesson Plan and User Inputs in Session State ---
@@ -37,6 +46,9 @@ st.write("Track your progress by crossing out the topics that you have already l
 
 
 with st.sidebar:
+    # Model Selection Interface
+    render_model_selector()
+    
     st.header("📚 Generate a Lesson Plan")
 
     # Pre-fill input fields with saved values
@@ -66,9 +78,6 @@ with st.sidebar:
         }
         storage.save_lesson_plan_inputs(st.session_state.lesson_plan_inputs)  # Implement in storage
 
-        # OpenAI API Call to Generate Lesson Plan
-        client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-
         lesson_prompt = f"""
         You are an AI that generates structured **lesson plans** for learning {LANGUAGE}.
         - The user is at **{user_level}** level.
@@ -94,17 +103,13 @@ with st.sidebar:
         """
 
         with st.spinner("Generating lesson plan..."):
-            response = client.chat.completions.create(
-                model=OPENAI_MODEL,
-                messages=[
-                    {"role": "system", "content": "You generate structured JSON lesson plans only."},
-                    {"role": "user", "content": lesson_prompt}
-                ],
-                temperature=TEMPERATURE
-            )
+            response = chat_completion([
+                {"role": "system", "content": "You generate structured JSON lesson plans only."},
+                {"role": "user", "content": lesson_prompt}
+            ], model_type="lesson")
 
         # Extract JSON from response safely
-        json_match = re.search(r'\{.*\}', response.choices[0].message.content, re.DOTALL)
+        json_match = re.search(r'\{.*\}', response, re.DOTALL)
 
         if json_match:
             try:
@@ -120,7 +125,7 @@ with st.sidebar:
                     # Save lesson plan
                     st.session_state.lesson_plan = formatted_plan
                     storage.save_lesson_plan(st.session_state.lesson_plan)
-                    st.experimental_rerun()
+                    st.rerun()
                 else:
                     st.error("Error: AI response did not include 'lesson_plan' key. Try again.")
             except json.JSONDecodeError:
@@ -176,7 +181,7 @@ else:
                 if st.button("❌", key=f"delete_{i}_{j}"):
                     del st.session_state.lesson_plan[i]["assignments"][j]
                     storage.save_lesson_plan(st.session_state.lesson_plan)
-                    st.experimental_rerun()
+                    st.rerun()
 
         # Add a new assignment under each week/day
         new_task = st.text_input(f"➕ Add task for {lesson['week_or_day']}", key=f"new_task_{i}")
@@ -184,4 +189,4 @@ else:
             if new_task.strip():
                 st.session_state.lesson_plan[i]["assignments"].append({"title": new_task.strip(), "completed": False})
                 storage.save_lesson_plan(st.session_state.lesson_plan)
-                st.experimental_rerun()
+                st.rerun()

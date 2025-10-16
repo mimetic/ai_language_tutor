@@ -1,6 +1,169 @@
 {
-    "openai_model_name": "gpt-4o",
-    "temperature": 0.7,
-    "language": "Polish"
-  }
-  
+    "language": "German",
+    "llm_models": {
+        "chat": "qwen2.5-7b-instruct",
+        "lesson": "qwen2.5-7b-instruct",
+        "available": [
+            {
+                "id": "gemma-3-270m-it-mlx",
+                "name": "gemma-3-270m-it-mlx",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "meta-llama-3.1-8b-instruct@4bit",
+                "name": "meta-llama-3.1-8b-instruct@4bit",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "google/gemma-3-12b",
+                "name": "google/gemma-3-12b",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "meta-llama-3.1-8b-instruct@8bit",
+                "name": "meta-llama-3.1-8b-instruct@8bit",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "text-embedding-nomic-embed-text-v1.5",
+                "name": "text-embedding-nomic-embed-text-v1.5",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "text-embedding-bge-m3",
+                "name": "text-embedding-bge-m3",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "text-embedding-bge-reranker-v2-m3",
+                "name": "text-embedding-bge-reranker-v2-m3",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "bge-small-en-v1.5",
+                "name": "bge-small-en-v1.5",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "llama-3.2-1b-instruct-mlx-finetuned-bedtimestory3",
+                "name": "llama-3.2-1b-instruct-mlx-finetuned-bedtimestory3",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "qwen2.5-0.5b-instruct-mlx",
+                "name": "qwen2.5-0.5b-instruct-mlx",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "qwen3-embedding-4b-dwq",
+                "name": "qwen3-embedding-4b-dwq",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "mixtral_7bx2_moe",
+                "name": "mixtral_7bx2_moe",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "text-embedding-qwen3-embedding-0.6b",
+                "name": "text-embedding-qwen3-embedding-0.6b",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "codellama-7b-kstack",
+                "name": "codellama-7b-kstack",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "text-embedding-nomic-embed-text-latest",
+                "name": "text-embedding-nomic-embed-text-latest",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "qwen2-1.5b-instruct",
+                "name": "qwen2-1.5b-instruct",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "samantha-mistral-instruct-7b",
+                "name": "samantha-mistral-instruct-7b",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "slim-extract-qwen-1.5b",
+                "name": "slim-extract-qwen-1.5b",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "slim-summary-tool",
+                "name": "slim-summary-tool",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "nomicai-modernbert-embed-base",
+                "name": "nomicai-modernbert-embed-base",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "text-embedding-mxbai-embed-large-v1",
+                "name": "text-embedding-mxbai-embed-large-v1",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "text-embedding-nomic-embed-text-v1.5-embedding",
+                "name": "text-embedding-nomic-embed-text-v1.5-embedding",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "qwen2.5-7b-instruct",
+                "name": "qwen2.5-7b-instruct",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "phi-3-mini-4k-instruct",
+                "name": "phi-3-mini-4k-instruct",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "nous-hermes-2-mistral-7b-dpo-mlx",
+                "name": "nous-hermes-2-mistral-7b-dpo-mlx",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "yi-coder-9b-chat-mlx",
+                "name": "yi-coder-9b-chat-mlx",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "qwen/qwen2.5-coder-14b",
+                "name": "qwen/qwen2.5-coder-14b",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "mistral-7b-instruct-v0.3",
+                "name": "mistral-7b-instruct-v0.3",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "mlx-community/meta-llama-3-8b-instruct",
+                "name": "mlx-community/meta-llama-3-8b-instruct",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "whisper-large-v3-turbo",
+                "name": "whisper-large-v3-turbo",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "mistralai/mistral-nemo-instruct-2407",
+                "name": "mistralai/mistral-nemo-instruct-2407",
+                "provider": "lmstudio"
+            },
+            {
+                "id": "quantfactory/meta-llama-3-8b-instruct",
+                "name": "quantfactory/meta-llama-3-8b-instruct",
+                "provider": "lmstudio"
+            }
+        ]
+    }
+}
