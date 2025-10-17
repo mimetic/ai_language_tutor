@@ -1,9 +1,8 @@
-# Version: 04.15
+# Version: 06.01
 import streamlit as st
 from utils import storage
 from sidebar import render_sidebar
-from utils.llm_client import chat_completion, get_llm_client
-from components.model_selector import render_model_selector
+from utils.llm_client import chat_completion, get_llm_client, get_prompt
 import pandas as pd
 import json
 import os
@@ -50,8 +49,9 @@ vocab_list = corrected_vocab_list
 st.title("📚 Vocabulary")
 st.write("Review the words that you have learned so far. You can remove or add new words in the side panel.")
 
-# Model Selection Interface
-render_model_selector()
+# Settings link
+if st.sidebar.button("⚙️ Settings", help="Configure models and language settings"):
+    st.switch_page("pages/settings.py")
 
 # Sidebar to display word list
 st.sidebar.header("💉 Vocabulary List")
@@ -90,20 +90,13 @@ new_word = st.sidebar.text_input("New word", key="new_vocab_word")
 
 if st.sidebar.button("Add Word"):
     if new_word.strip() and all(w["word"] != new_word.strip() for w in vocab_list):
-        prompt = f"""
-        You are a {LANGUAGE} language expert. For the word "{new_word}", provide:
-        1. A concise translation to English.
-        2. One example sentence in {LANGUAGE} using the word.
-
-        Format the response as:
-        Translation: <your translation>
-        Example: <your example>
-        """
+        prompt = get_prompt('word_translation', word=new_word)
+        system_prompt = get_prompt('word_translation_system')
 
         with st.spinner(f"Fetching translation and example for '{new_word}'..."):
             try:
                 response = chat_completion([
-                    {"role": "system", "content": f"You provide translation and examples in {LANGUAGE}."},
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt}
                 ], model_type="chat")
 

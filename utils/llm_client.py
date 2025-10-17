@@ -1,4 +1,4 @@
-# Version: 04.15
+# Version: 06.01
 import os
 import json
 import requests
@@ -28,6 +28,26 @@ def save_config(config):
     config_path = os.path.join(os.path.dirname(__file__), 'config.json')
     with open(config_path, 'w') as f:
         json.dump(config, f, indent=4)
+
+def get_prompt(prompt_key: str, **kwargs) -> str:
+    """Get a prompt from config.json with variable substitution"""
+    config = load_config()
+    prompts = config.get('prompts', {})
+    
+    if prompt_key not in prompts:
+        raise ValueError(f"Prompt '{prompt_key}' not found in config.json")
+    
+    prompt_template = prompts[prompt_key]
+    
+    # Add language from config if not provided
+    if 'language' not in kwargs:
+        kwargs['language'] = config.get('language', 'English')
+    
+    # Replace variables in the prompt
+    try:
+        return prompt_template.format(**kwargs)
+    except KeyError as e:
+        raise ValueError(f"Missing variable {e} for prompt '{prompt_key}'") from e
 
 class LLMClient:
     """Unified LLM client supporting OpenAI, LM Studio, and Ollama with model selection"""

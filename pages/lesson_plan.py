@@ -1,9 +1,8 @@
-# Version: 04.15
+# Version: 06.01
 import streamlit as st
 from utils import storage
 from sidebar import render_sidebar
-from utils.llm_client import chat_completion, get_llm_client
-from components.model_selector import render_model_selector
+from utils.llm_client import chat_completion, get_llm_client, get_prompt
 import json
 import re
 import os
@@ -46,8 +45,9 @@ st.write("Track your progress by crossing out the topics that you have already l
 
 
 with st.sidebar:
-    # Model Selection Interface
-    render_model_selector()
+    # Settings link
+    if st.button("⚙️ Settings", help="Configure models and language settings"):
+        st.switch_page("pages/settings.py")
     
     st.header("📚 Generate a Lesson Plan")
 
@@ -78,33 +78,15 @@ with st.sidebar:
         }
         storage.save_lesson_plan_inputs(st.session_state.lesson_plan_inputs)  # Implement in storage
 
-        lesson_prompt = f"""
-        You are an AI that generates structured **lesson plans** for learning {LANGUAGE}.
-        - The user is at **{user_level}** level.
-        - The lesson plan duration is **{learning_period}**.
-        - The learning goals are: "{user_goals}".
-
-        **Format:**
-        - Output **only JSON** (no extra text, no explanations).
-        - Use this exact JSON format:
-        ```json
-        {{
-            "lesson_plan": {{
-                "Week 1 - Meeting new people": ["Introduce yourself, your occupation and hobbies", "Role play: meeting new people", "Describe your day"],
-                "Week 2 - Travel and transport": ["Buying tickets, asking for directions", "Describe your latest journey", "Conversation at a hotel, at a railway station"],
-                "Week 3 - Home, family and friends": ["Describe your apartment", "Describe your friends and family members", "Inviting guests"]
-            }}
-        }}
-        ```
-        - If **duration is less than 2 weeks**, use `"Day X - Topic"` format.
-        - If **duration is 2 weeks or more**, use `"Week X - Topic"` format.
-        - Each day/week must have **at least 2 tasks**.
-        - **Return only valid JSON**.
-        """
+        lesson_prompt = get_prompt('lesson_plan_generation', 
+                                   level=user_level, 
+                                   period=learning_period, 
+                                   goals=user_goals)
+        lesson_system = get_prompt('lesson_plan_system')
 
         with st.spinner("Generating lesson plan..."):
             response = chat_completion([
-                {"role": "system", "content": "You generate structured JSON lesson plans only."},
+                {"role": "system", "content": lesson_system},
                 {"role": "user", "content": lesson_prompt}
             ], model_type="lesson")
 

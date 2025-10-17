@@ -24,7 +24,7 @@ st.title("🪐 Language Learning Hub")
 st.write("Welcome to your personal AI-powered language tutor! Choose an activity.")
 
 # Navigation Buttons in Main Content with Unique Keys
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
     if st.button("💬 Talk to your teaching assistant", key="main_chatbot"):
@@ -39,6 +39,9 @@ with col3:
 with col4:
     if st.button("📜 Look through the previous lessons", key="main_history"):
         st.switch_page("pages/history.py")
+with col5:
+    if st.button("⚙️ Configure settings", key="main_settings"):
+        st.switch_page("pages/settings.py")
 
 
 # --- Space-Themed Progress Bar ---

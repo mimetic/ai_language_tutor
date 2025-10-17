@@ -1,9 +1,8 @@
-# Version: 04.15
+# Version: 06.01
 import streamlit as st
 from utils import storage
 from sidebar import render_sidebar
-from utils.llm_client import chat_completion, get_llm_client
-from components.model_selector import render_model_selector
+from utils.llm_client import chat_completion, get_llm_client, get_prompt
 import random
 import json
 import os
@@ -37,22 +36,14 @@ except Exception as e:
 
 # AI Response Function from the whole history
 def get_ai_response_history(messages):
-    return chat_completion(messages, model_type="chat")
+    # Include system prompt at the beginning of conversation
+    messages_with_system = [st.session_state.system_prompt] + messages
+    return chat_completion(messages_with_system, model_type="chat")
 
 # --- Initialize session state for messages if not present ---
 if "messages" not in st.session_state:
-    st.session_state.system_prompt = {"role": "system", "content": f"""
-        You are a friendly personal {LANGUAGE} language tutor, helping to improve speaking skills. You:
-        - Speak only in {LANGUAGE}, but provide translations if requested.
-        - Plan lesson topics covering everyday situations, professional settings, and cultural aspects of {LANGUAGE} speaking countries.
-        - Provide a list of key words and phrases for each topic, along with examples of usage.
-        - Check user's answers to questions, correct mistakes, and explain grammar and pronunciation nuances. When correcting mistakes, you strike out incorrect words and write the correct ones in bold next to them, so the user can see errors. In the case of grammar mistakes, you remind the user of the relevant rule.
-        - Keep the conversation going, ask guiding questions, engage the user in dialogues, and help them develop fluency.
-        - Suggest more advanced vocabulary based on responses, ask follow-up questions, and encourage the user to use new words in context.
-        - Maintain a vocabulary list of new words and occasionally remind the user to use them in conversation.
-        - Recommend additional materials: movies, books, podcasts, and articles in {LANGUAGE}.
-        - Encourage the user to think in {LANGUAGE} and not be afraid of mistakes, creating a friendly and motivating learning environment.
-        """}
+    system_prompt_content = get_prompt('chatbot_system')
+    st.session_state.system_prompt = {"role": "system", "content": system_prompt_content}
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -61,8 +52,9 @@ if "messages" not in st.session_state:
 render_sidebar()
 st.sidebar.header("💬 Your Teaching Assistant")
 
-# Model Selection Interface
-render_model_selector()
+# Settings link
+if st.sidebar.button("⚙️ Settings", help="Configure models and language settings"):
+    st.switch_page("pages/settings.py")
 
 # Load vocabulary list
 vocab_list = storage.load_vocabulary()
@@ -95,15 +87,7 @@ new_word = st.sidebar.text_input("➕ Add a new word", key="new_vocab_word")
 
 if st.sidebar.button("Add Word"):
     if new_word.strip() and all(w["word"] != new_word.strip() for w in vocab_list):
-        prompt = f"""
-        You are a {LANGUAGE} language expert. For the word "{new_word}", provide:
-        1. A concise translation to English.
-        2. One example sentence in {LANGUAGE} using the word.
-
-        Format the response as:
-        Translation: <your translation>
-        Example: <your example>
-        """
+        prompt = get_prompt('word_translation', word=new_word)
 
         with st.spinner(f"Fetching translation and example for '{new_word}'..."):
             response = chat_completion([{"role": "user", "content": prompt}], model_type="chat")
@@ -145,10 +129,7 @@ if st.sidebar.button("📝 Quiz!"):
         quiz_words = random.sample(vocab_list, min(10, len(vocab_list)))
         quiz_word_list = [w["word"] for w in quiz_words]
 
-        quiz_prompt = f"""
-        You are a {LANGUAGE} language tutor. Create an engaging exercise using these words: {', '.join(quiz_word_list)}.
-        Format it as a quiz that the user can answer.
-        """
+        quiz_prompt = get_prompt('quiz_generation', words=', '.join(quiz_word_list))
 
         with st.spinner("Generating quiz..."):
             quiz_response = get_ai_response_history(st.session_state.messages + [{"role": "user", "content": quiz_prompt}])

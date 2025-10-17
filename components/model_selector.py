@@ -1,9 +1,16 @@
-# Version: 01.01
+# Version: 06.01 - DEPRECATED
+# This component has been moved to pages/settings.py
+# Use the Settings page for model selection instead
+
 import streamlit as st
 from utils.llm_client import get_llm_client, get_available_models, set_model_for_type, load_config
 
 def render_model_selector():
-    """Render model selection interface in sidebar"""
+    """DEPRECATED: Render model selection interface in sidebar
+    
+    This function is deprecated. Model selection has been moved to the Settings page.
+    Use pages/settings.py instead.
+    """
     
     st.sidebar.header("🤖 Model Selection")
     

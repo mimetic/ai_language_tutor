@@ -13,6 +13,7 @@ Check out full story in my [Medium article](https://medium.com/@kate.ruksha/buil
 - **Lesson History** – Review past conversations and learning progress.
 - **Multi-Model Support** – Choose different LLM models for chat and lesson planning.
 - **Model Discovery** – Automatically discover available models from LM Studio.
+- **Centralized Settings** – Configure models, language, and view system info in dedicated Settings page.
 
 ## 🏗️ Tech Stack
 - **Frontend:** Streamlit (Fast UI prototyping)
@@ -33,6 +34,7 @@ AI_LANGUAGE_TUTOR/
 │   │── chatbot.py         # AI chatbot interface
 │   │── history.py         # Lesson history page
 │   │── lesson_plan.py     # Lesson plan page
+│   │── settings.py        # Settings and configuration page
 │   │── vocab.py           # Vocabulary management page
 │
 │── components/            # Reusable UI components
@@ -76,10 +78,12 @@ The app supports multiple LLM providers:
    OPENAI_API_KEY=your-api-key-here
    ```
 
-2. **UI Model Selection**: Use the model selector in the sidebar to:
+2. **Settings Page**: Access the Settings page (⚙️ icon) to:
    - Choose different models for chat vs lesson planning
    - Auto-discover available models from LM Studio
    - Switch models without restarting the app
+   - Change learning language
+   - View prompt configurations
 
 3. **Language Configuration**: Set in `utils/config.json`:
    ```json
@@ -127,8 +131,10 @@ Ensure you have **Python 3.8+** installed.
 
 ## 📖 Usage Guide
 1. **Start the app** and select an activity from the main page.
-2. **Configure models** using the sidebar model selector:
+2. **Configure settings** using the Settings page (⚙️ icon):
    - Choose different models for chat and lesson planning
+   - Change learning language
+   - View prompt configurations and system info
    - Refresh to discover new models from LM Studio
 3. **Use the AI Chat** for practice and receive instant corrections.
 4. **Generate lesson plans** tailored to your language goals.

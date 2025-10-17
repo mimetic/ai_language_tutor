@@ -37,7 +37,7 @@ def render_sidebar():
     # Icon Row for Navigation
     st.sidebar.markdown('<div class="icon-row">', unsafe_allow_html=True)
 
-    col1, col2, col3, col4, col5 = st.sidebar.columns(5)
+    col1, col2, col3, col4, col5, col6 = st.sidebar.columns(6)
 
     # Main Page Icon 🪐
     if col1.button("🪐", key="icon_app", help="Home"):
@@ -58,5 +58,9 @@ def render_sidebar():
     # History Icon 📜
     if col5.button("📜", key="icon_history", help="History"):
         st.switch_page("pages/history.py")
+    
+    # Settings Icon ⚙️
+    if col6.button("⚙️", key="icon_settings", help="Settings"):
+        st.switch_page("pages/settings.py")
 
     st.sidebar.markdown('</div>', unsafe_allow_html=True)
