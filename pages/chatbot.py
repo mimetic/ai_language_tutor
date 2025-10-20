@@ -1,4 +1,4 @@
-# Version: 06.01
+# Version: 07.01
 import streamlit as st
 from utils import storage
 from sidebar import render_sidebar
@@ -15,9 +15,19 @@ st.set_page_config(page_title="Let's talk", page_icon="💬", layout="wide")
 
 # --- 💬 Chatbot Section ---
 st.title("💬 Let's Talk")
-st.write("Talk to your AI teaching assistant on any topic, ask for explanations of rules, useful vocabulary, or exercises.")
-st.write("Save any new words to your vocabulary list in the side panel.")
-st.write("Press 'Quiz!' to get exercises for practicing random words from your vocabulary list.")
+
+# Check if there's a lesson prompt from lesson plan
+if st.session_state.get("chatbot_preset") and not st.session_state.get("preset_locked", True):
+    lesson_prompt = st.session_state.chatbot_preset
+    st.info(f"🎯 Lesson Focus: {lesson_prompt}")
+    st.session_state.preset_locked = True
+    
+    # Add lesson prompt to messages if not already present
+    if not st.session_state.messages or st.session_state.messages[-1]["content"] != lesson_prompt:
+        st.session_state.messages.append({"role": "user", "content": lesson_prompt})
+else:
+    # Default guidance when no lesson is selected
+    st.write("Talk to your AI teaching assistant on any topic, ask for explanations of rules, useful vocabulary, or exercises.")
 
 # --- Load Configuration from config.json and environment ---
 with open('utils/config.json', 'r') as config_file:
@@ -51,10 +61,6 @@ if "messages" not in st.session_state:
 # --- 📖 Vocabulary Panel ---
 render_sidebar()
 st.sidebar.header("💬 Your Teaching Assistant")
-
-# Settings link
-if st.sidebar.button("⚙️ Settings", help="Configure models and language settings"):
-    st.switch_page("pages/settings.py")
 
 # Load vocabulary list
 vocab_list = storage.load_vocabulary()

@@ -1,4 +1,4 @@
-# Version: 06.01
+# Version: 07.01
 import os
 import json
 import requests
@@ -55,11 +55,14 @@ class LLMClient:
     def __init__(self, model_type: str = "chat"):
         self.provider = os.getenv("LLM_PROVIDER", "openai").lower()
         self.model_type = model_type
-        self.temperature = float(os.getenv("LLM_TEMPERATURE", "0.7"))
-        self.max_tokens = int(os.getenv("LLM_MAX_TOKENS", "1000"))
         
-        # Load config for model selection
+        # Load config for model selection and settings
         self.config = load_config()
+        
+        # Get model-specific settings from config (with env fallback)
+        model_settings = self.config.get("llm_models", {}).get(f"{model_type}_settings", {})
+        self.temperature = float(model_settings.get("temperature", os.getenv("LLM_TEMPERATURE", "0.7")))
+        self.max_tokens = int(model_settings.get("max_tokens", os.getenv("LLM_MAX_TOKENS", "1000")))
         
         # Determine model to use (config overrides env)
         self.model = self._get_model_for_type(model_type)
@@ -291,3 +294,24 @@ def set_model_for_type(model_type: str, model_id: str):
     # Create new client and set the model
     client = get_llm_client(model_type)
     client.set_model_for_type(model_type, model_id)
+
+def set_model_settings(model_type: str, temperature: float, max_tokens: int):
+    """Set temperature and max tokens for a specific model type"""
+    config = load_config()
+    
+    # Ensure the settings structure exists
+    if "llm_models" not in config:
+        config["llm_models"] = {}
+    
+    settings_key = f"{model_type}_settings"
+    config["llm_models"][settings_key] = {
+        "temperature": temperature,
+        "max_tokens": max_tokens
+    }
+    
+    save_config(config)
+    
+    # Clear existing client for this type to force recreation with new settings
+    global _llm_clients
+    if model_type in _llm_clients:
+        del _llm_clients[model_type]

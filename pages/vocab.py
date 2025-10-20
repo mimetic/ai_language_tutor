@@ -1,4 +1,4 @@
-# Version: 06.01
+# Version: 07.01
 import streamlit as st
 from utils import storage
 from sidebar import render_sidebar
@@ -48,10 +48,6 @@ vocab_list = corrected_vocab_list
 # --- Page Content ---
 st.title("📚 Vocabulary")
 st.write("Review the words that you have learned so far. You can remove or add new words in the side panel.")
-
-# Settings link
-if st.sidebar.button("⚙️ Settings", help="Configure models and language settings"):
-    st.switch_page("pages/settings.py")
 
 # Sidebar to display word list
 st.sidebar.header("💉 Vocabulary List")

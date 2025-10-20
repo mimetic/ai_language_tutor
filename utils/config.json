@@ -3,6 +3,14 @@
     "llm_models": {
         "chat": "qwen2.5-7b-instruct",
         "lesson": "qwen2.5-7b-instruct",
+        "chat_settings": {
+            "temperature": 0.1,
+            "max_tokens": 1000
+        },
+        "lesson_settings": {
+            "temperature": 0.1,
+            "max_tokens": 1500
+        },
         "available": [
             {
                 "id": "gemma-3-270m-it-mlx",
@@ -173,5 +181,30 @@
         "quiz_generation": "You are a {language} language tutor. Create an engaging exercise using these words: {words}.\nFormat it as a quiz that the user can answer.",
         "lesson_plan_generation": "You are an AI that generates structured **lesson plans** for learning {language}.\n- The user is at **{level}** level.\n- The lesson plan duration is **{period}**.\n- The learning goals are: \"{goals}\".\n\n**Format:**\n- Output **only JSON** (no extra text, no explanations).\n- Use this exact JSON format:\n```json\n{{\n    \"lesson_plan\": {{\n        \"Week 1 - Meeting new people\": [\"Introduce yourself, your occupation and hobbies\", \"Role play: meeting new people\", \"Describe your day\"],\n        \"Week 2 - Travel and transport\": [\"Buying tickets, asking for directions\", \"Describe your latest journey\", \"Conversation at a hotel, at a railway station\"],\n        \"Week 3 - Home, family and friends\": [\"Describe your apartment\", \"Describe your friends and family members\", \"Inviting guests\"]\n    }}\n}}\n```\n- If **duration is less than 2 weeks**, use `\"Day X - Topic\"` format.\n- If **duration is 2 weeks or more**, use `\"Week X - Topic\"` format.\n- Each day/week must have **at least 2 tasks**.\n- **Return only valid JSON**.",
         "lesson_plan_system": "You generate structured JSON lesson plans only."
+    },
+    "learning": {
+        "goals": "Cover the skills required for B2 {language}. \nCover Konjunctiv I and II.\nCover Conditions.\n",
+        "topics": [
+            "articles",
+            "pronouns",
+            "adjectives",
+            "verb conjugation",
+            "past tense (Perfekt)",
+            "future tense (Werde + Infinitiv)",
+            "present tense",
+            "imperative mood",
+            "passive voice",
+            "conditionals (if-clauses)",
+            "substitutive clauses",
+            "relative pronouns",
+            "dative case",
+            "accusative case",
+            "prepositions",
+            "modal verbs",
+            "der, die, das distinction",
+            "plural forms",
+            "superlative adjectives",
+            "comparatives"
+        ]
     }
 }

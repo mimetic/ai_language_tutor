@@ -1,6 +1,6 @@
-# Version: 06.01
+# Version: 07.01
 import streamlit as st
-from utils.llm_client import get_llm_client, get_available_models, set_model_for_type, load_config, save_config
+from utils.llm_client import get_llm_client, get_available_models, set_model_for_type, load_config, save_config, set_model_settings
 from utils.llm_client import get_prompt
 import json
 
@@ -98,6 +98,37 @@ with tab1:
             else:
                 st.info("Chat model is already set to the selected model")
         
+        # Chat model settings
+        chat_settings = config.get("llm_models", {}).get("chat_settings", {"temperature": 0.1, "max_tokens": 1000})
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            chat_temp = st.slider(
+                "Temperature:",
+                min_value=0.0,
+                max_value=2.0,
+                value=float(chat_settings.get("temperature", 0.1)),
+                step=0.1,
+                key="chat_temperature",
+                help="Controls randomness. Lower = more focused, Higher = more creative"
+            )
+        
+        with col2:
+            chat_tokens = st.number_input(
+                "Max Tokens:",
+                min_value=100,
+                max_value=4000,
+                value=int(chat_settings.get("max_tokens", 1000)),
+                step=100,
+                key="chat_max_tokens",
+                help="Maximum response length"
+            )
+        
+        if st.button("⚙️ Update Chat Settings", key="update_chat_settings"):
+            set_model_settings("chat", chat_temp, chat_tokens)
+            st.success("✅ Chat model settings updated!")
+            st.rerun()
+        
         st.divider()
         
         # Lesson/Quiz Model Selection  
@@ -128,6 +159,37 @@ with tab1:
                 st.rerun()
             else:
                 st.info("Lesson model is already set to the selected model")
+        
+        # Lesson model settings
+        lesson_settings = config.get("llm_models", {}).get("lesson_settings", {"temperature": 0.1, "max_tokens": 1500})
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            lesson_temp = st.slider(
+                "Temperature:",
+                min_value=0.0,
+                max_value=2.0,
+                value=float(lesson_settings.get("temperature", 0.1)),
+                step=0.1,
+                key="lesson_temperature",
+                help="Controls randomness. Lower = more focused, Higher = more creative"
+            )
+        
+        with col2:
+            lesson_tokens = st.number_input(
+                "Max Tokens:",
+                min_value=100,
+                max_value=4000,
+                value=int(lesson_settings.get("max_tokens", 1500)),
+                step=100,
+                key="lesson_max_tokens",
+                help="Maximum response length"
+            )
+        
+        if st.button("⚙️ Update Lesson Settings", key="update_lesson_settings"):
+            set_model_settings("lesson", lesson_temp, lesson_tokens)
+            st.success("✅ Lesson model settings updated!")
+            st.rerun()
         
         # Quick Actions
         st.divider()
@@ -208,24 +270,53 @@ with tab2:
     
     # Prompt customization info
     st.subheader("🎯 Prompt Customization")
-    st.write("Prompts are stored in `utils/config.json` and can be customized:")
+    st.write("Edit AI prompts to customize behavior:")
     
     available_prompts = list(config.get('prompts', {}).keys())
     if available_prompts:
         selected_prompt = st.selectbox(
-            "View prompt:",
+            "Select prompt to edit:",
             available_prompts,
             format_func=lambda x: x.replace('_', ' ').title()
         )
         
         if selected_prompt:
-            try:
-                prompt_content = get_prompt(selected_prompt, word="example", words="word1, word2", 
-                                         level="Beginner", period="1 Month", goals="Learn basics")
-                st.code(prompt_content, language="text")
-                st.info("💡 To customize prompts, edit the 'prompts' section in utils/config.json")
-            except Exception as e:
-                st.error(f"Error loading prompt: {e}")
+            current_prompt = config.get('prompts', {}).get(selected_prompt, '')
+            
+            # Edit prompt in text area with word wrap
+            edited_prompt = st.text_area(
+                f"Edit {selected_prompt.replace('_', ' ').title()}:",
+                value=current_prompt,
+                height=200,
+                help="Variables: {language}, {word}, {words}, {level}, {period}, {goals}",
+                key=f"edit_{selected_prompt}"
+            )
+            
+            # Show preview of formatted prompt
+            if edited_prompt != current_prompt:
+                st.subheader("Preview (with sample variables):")
+                try:
+                    preview = edited_prompt.format(
+                        language=config.get('language', 'German'),
+                        word="example",
+                        words="word1, word2", 
+                        level="A1",
+                        period="1 Month",
+                        goals="Learn basics"
+                    )
+                    st.text_area("Preview:", preview, height=150, disabled=True)
+                except Exception as e:
+                    st.warning(f"Preview error: {e}")
+            
+            # Save button
+            if st.button(f"💾 Save {selected_prompt.replace('_', ' ').title()}", key=f"save_{selected_prompt}"):
+                if edited_prompt != current_prompt:
+                    config['prompts'][selected_prompt] = edited_prompt
+                    save_config(config)
+                    st.success(f"✅ {selected_prompt.replace('_', ' ').title()} prompt saved!")
+                    st.rerun()
+                else:
+                    st.info("No changes to save")
 
 with tab3:
     st.header("ℹ️ System Information")
@@ -281,9 +372,3 @@ with tab3:
     - Check console for detailed error messages
     """)
 
-# Navigation back to main app
-st.divider()
-col1, col2, col3 = st.columns([1, 1, 1])
-with col2:
-    if st.button("🏠 Back to Main App", type="primary"):
-        st.switch_page("app.py")

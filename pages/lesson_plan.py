@@ -1,8 +1,8 @@
-# Version: 06.01
+# Version: 07.01
 import streamlit as st
 from utils import storage
 from sidebar import render_sidebar
-from utils.llm_client import chat_completion, get_llm_client, get_prompt
+from utils.llm_client import chat_completion, get_llm_client, get_prompt, load_config, save_config
 import json
 import re
 import os
@@ -45,17 +45,29 @@ st.write("Track your progress by crossing out the topics that you have already l
 
 
 with st.sidebar:
-    # Settings link
-    if st.button("⚙️ Settings", help="Configure models and language settings"):
-        st.switch_page("pages/settings.py")
-    
     st.header("📚 Generate a Lesson Plan")
 
     # Pre-fill input fields with saved values
+    levels = ["A1", "A2", "B1", "B2", "C1", "C2"]
+    # Convert old levels to new format if needed
+    current_level = st.session_state.lesson_plan_inputs["user_level"]
+    if current_level == "Beginner":
+        current_level = "A1"
+    elif current_level == "Intermediate":
+        current_level = "B1"
+    elif current_level == "Advanced":
+        current_level = "C1"
+    
+    try:
+        level_index = levels.index(current_level)
+    except ValueError:
+        level_index = 0  # Default to A1
+    
     user_level = st.selectbox(
         "Select your level:",
-        ["Beginner", "Intermediate", "Advanced"],
-        index=["Beginner", "Intermediate", "Advanced"].index(st.session_state.lesson_plan_inputs["user_level"])
+        levels,
+        index=level_index,
+        help="A1-A2: Beginner, B1-B2: Intermediate, C1-C2: Advanced"
     )
 
     learning_period = st.selectbox(
@@ -64,10 +76,69 @@ with st.sidebar:
         index=["1 Week", "1 Month", "3 Months"].index(st.session_state.lesson_plan_inputs["learning_period"])
     )
 
+    # Auto-save goals to config when changed
+    config = load_config()
+    current_goals = config.get('learning', {}).get('goals', '')
+    
     user_goals = st.text_area(
         "Your learning goals:",
-        value=st.session_state.lesson_plan_inputs["user_goals"]
+        value=current_goals,
+        help="Goals are automatically saved when you type",
+        key="user_goals_input"
     )
+    
+    # Auto-save goals when changed
+    if user_goals != current_goals:
+        if 'learning' not in config:
+            config['learning'] = {}
+        config['learning']['goals'] = user_goals
+        save_config(config)
+    
+    # Generate topics for the language using LLM
+    st.subheader("Grammar Topics")
+    
+    # Load cached topics or generate new ones
+    cached_topics = config.get('learning', {}).get('topics', [])
+    
+    if not cached_topics or st.button("🔄 Refresh Topics", help="Generate new topic suggestions"):
+        with st.spinner(f"Generating {LANGUAGE} grammar topics..."):
+            topics_prompt = f"""List 15-20 important grammar topics for learning {LANGUAGE}, focusing on levels A1 to C2. 
+            Format as a simple list, one topic per line, no numbering or bullets. 
+            Include topics like: conditionals, subjunctive, future tense, past tense, articles, pronouns, adjectives, etc.
+            Make the topics specific to {LANGUAGE} grammar."""
+            
+            try:
+                response = chat_completion([
+                    {"role": "system", "content": f"You are a {LANGUAGE} grammar expert. Provide clear, specific grammar topics."},
+                    {"role": "user", "content": topics_prompt}
+                ], model_type="lesson")
+                
+                # Parse topics from response
+                topics = [topic.strip() for topic in response.strip().split('\n') if topic.strip()]
+                
+                # Save topics to config
+                if 'learning' not in config:
+                    config['learning'] = {}
+                config['learning']['topics'] = topics
+                save_config(config)
+                cached_topics = topics
+                
+            except Exception as e:
+                st.error(f"Failed to generate topics: {e}")
+                cached_topics = ["Verb conjugation", "Articles", "Adjectives", "Conditionals", "Subjunctive"]
+    
+    # Display topics as checkboxes
+    if cached_topics:
+        selected_topics = []
+        cols = st.columns(2)
+        
+        for i, topic in enumerate(cached_topics):
+            with cols[i % 2]:
+                if st.checkbox(topic, key=f"topic_{i}"):
+                    selected_topics.append(topic)
+        
+        if selected_topics:
+            st.success(f"Selected {len(selected_topics)} topics: {', '.join(selected_topics[:3])}{'...' if len(selected_topics) > 3 else ''}")
 
     if st.button("📜 Generate Lesson Plan"):
         # Save user inputs to session state and storage

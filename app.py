@@ -27,20 +27,20 @@ st.write("Welcome to your personal AI-powered language tutor! Choose an activity
 col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
-    if st.button("💬 Talk to your teaching assistant", key="main_chatbot"):
+    if st.button("Talk to your teaching assistant", key="main_chatbot"):
         st.switch_page("pages/chatbot.py")
 with col2:
-    if st.button("📖 Check out your vocabulary", key="main_vocab"):
+    if st.button("Check out your vocabulary", key="main_vocab"):
         st.switch_page("pages/vocab.py")
 
 with col3:
-    if st.button("📚 Review your lessons plan", key="main_lesson_plan"):
+    if st.button("Review your lessons plan", key="main_lesson_plan"):
         st.switch_page("pages/lesson_plan.py")
 with col4:
-    if st.button("📜 Look through the previous lessons", key="main_history"):
+    if st.button("Look through the previous lessons", key="main_history"):
         st.switch_page("pages/history.py")
 with col5:
-    if st.button("⚙️ Configure settings", key="main_settings"):
+    if st.button("Configure settings", key="main_settings"):
         st.switch_page("pages/settings.py")
 
 
